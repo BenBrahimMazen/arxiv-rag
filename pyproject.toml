@@ -1,0 +1,37 @@
+[project]
+name = "arxiv-rag"
+version = "1.0.0"
+description = "RAG-powered Q&A over ArXiv ML papers"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4"]
+ignore = ["B008"]  # FastAPI uses callables in argument defaults
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B018"]
+"src/api/routes/*" = ["B008"]
+# Long lines in these files are human-readable prose/data, not code.
+"src/evaluation/test_set.py" = ["E501"]
+"src/generation/prompts.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = false
+disallow_untyped_defs = false
+check_untyped_defs = true
+exclude = ["tests/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/frontend/*"]
