@@ -49,24 +49,6 @@ jobs:
           name: coverage
           path: coverage.xml
 
-  ragas-eval:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      LLM_BACKEND: openai
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - run: pip install -r requirements.txt
-      - name: Run RAGAS evaluation
-        run: python -m scripts.evaluate --threshold 0.7
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ragas-report
-          path: evaluation_results/*.json
+# Note: RAGAS evaluation needs an LLM key AND an ingested paper index, so it can't
+# run on a clean CI checkout. It lives in a separate, on-demand workflow:
+# .github/workflows/evaluate.yml (run manually once papers are ingested).

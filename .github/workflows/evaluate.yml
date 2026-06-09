@@ -1,0 +1,57 @@
+name: RAGAS Evaluation
+
+# On-demand RAGAS evaluation (NOT part of push CI).
+#
+# RAGAS needs (1) an LLM judge key and (2) an ingested paper index, so it cannot
+# run on a clean CI checkout. Run it manually from the Actions tab after you have
+# ingested papers and configured a key secret. The free path uses Groq:
+#   - add repository secret GROQ_API_KEY
+#   - this workflow restores a vector store / runs ingestion as needed
+#
+# For most portfolio use, the simplest path is to run `python -m scripts.evaluate`
+# LOCALLY (after ingestion) and paste the score table into the README.
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_papers:
+        description: "Papers to ingest before evaluating"
+        default: "30"
+        required: false
+      threshold:
+        description: "Fail if faithfulness drops below this"
+        default: "0.7"
+        required: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      EMBEDDING_BACKEND: local
+      RERANKER_BACKEND: local
+      VECTOR_BACKEND: chroma
+      LLM_BACKEND: groq
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      POSTGRES_URL: "sqlite+pysqlite:///./arxiv_rag.db"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Fail early if no key configured
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "::error::GROQ_API_KEY secret not set — add it in repo Settings → Secrets."
+            exit 1
+          fi
+      - name: Ingest a small batch
+        run: python -m scripts.ingest --max-papers "${{ inputs.max_papers }}"
+      - name: Run RAGAS evaluation
+        run: python -m scripts.evaluate --threshold "${{ inputs.threshold }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ragas-report
+          path: evaluation_results/*
