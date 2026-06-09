@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Bootstrap a fresh Ubuntu 22.04/24.04 EC2 instance to run the app.
-# Run once, as the default 'ubuntu' user:
-#   curl -fsSL <raw-url>/scripts/deploy/ec2-bootstrap.sh | bash
-# or scp it over and `bash ec2-bootstrap.sh`.
+# Bootstrap a fresh Ubuntu 22.04/24.04 VM (e.g. an Azure VM) to run the app.
+# Run once, as the default sudo-capable user (e.g. 'azureuser'):
+#   curl -fsSL <raw-url>/scripts/deploy/vm-bootstrap.sh | bash
+# or scp it over and `bash vm-bootstrap.sh`.
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/your-username/arxiv-rag.git}"
+REPO_URL="${REPO_URL:-https://github.com/BenBrahimMazen/arxiv-rag.git}"
 APP_DIR="${APP_DIR:-$HOME/arxiv-rag}"
 
 echo "### Updating packages ..."
@@ -51,8 +51,9 @@ cat <<'EOF'
 Next steps:
   1) Log out and back in (so the docker group applies), or run: newgrp docker
   2) Edit .env  (secrets, DOMAIN, CERTBOT_EMAIL)
-  3) Point your domain's DNS A record at this instance's Elastic IP
-  4) bash scripts/deploy/init-letsencrypt.sh
-  5) docker compose -f docker-compose.prod.yml up -d --build
-  6) Ingest data: docker compose -f docker-compose.prod.yml exec api python -m scripts.ingest --max-papers 50
+  3) In the Azure portal, open ports 80, 443, 8000, 8501 in the VM's Network Security Group
+  4) Point your domain's DNS A record at this VM's static public IP
+  5) bash scripts/deploy/init-letsencrypt.sh
+  6) docker compose -f docker-compose.prod.yml up -d --build
+  7) Ingest data: docker compose -f docker-compose.prod.yml exec api python -m scripts.ingest --max-papers 50
 EOF

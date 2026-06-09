@@ -14,14 +14,24 @@
 
 ---
 
-## ✨ Why this is more than a tutorial
+## Overview
 
-- **True hybrid search** — dense embeddings **+** BM25, fused with **Reciprocal Rank Fusion** (not just cosine similarity).
-- **Cross-encoder reranking** — `ms-marco-MiniLM` (or Cohere) re-scores candidates the way production systems do.
-- **Section-aware chunking** — never splits across `Abstract / Introduction / Results`, sentence-aligned with token budgets.
-- **Streaming API** — Server-Sent Events stream tokens, then a final `sources` event.
-- **RAGAS scores** — faithfulness / relevancy / recall / precision, gated in CI.
-- **Runs free out of the box** — local `sentence-transformers`, local cross-encoder, and Chroma require **no API keys**; swap to OpenAI / Cohere / Pinecone via env vars.
+An end-to-end Retrieval-Augmented Generation (RAG) system over ArXiv machine-learning
+papers, developed as an academic project. It covers the full lifecycle of a modern
+retrieval system: data ingestion from the ArXiv API, section-aware document chunking,
+dense and sparse indexing, hybrid retrieval with reranking, grounded answer generation
+with source citations, and quantitative evaluation with RAGAS. The system is packaged
+with a REST API, a web interface, containerized services, continuous integration, and a
+reproducible deployment path.
+
+## Key features
+
+- **Hybrid retrieval** — dense embeddings combined with BM25, fused via Reciprocal Rank Fusion (RRF).
+- **Cross-encoder reranking** — `ms-marco-MiniLM` (or Cohere) performs second-stage relevance scoring.
+- **Section-aware chunking** — chunks never span section boundaries (`Abstract` / `Introduction` / `Results`), are sentence-aligned, and respect token budgets.
+- **Streaming API** — answers are streamed token-by-token over Server-Sent Events, followed by a structured `sources` event.
+- **Evaluation** — RAGAS metrics: faithfulness, answer relevancy, context recall, and context precision.
+- **Pluggable, cost-free backends** — local `sentence-transformers`, a local cross-encoder, and Chroma require no API keys; Groq supplies a free hosted LLM. OpenAI, Cohere, and Pinecone are optional drop-in alternatives selected via environment variables.
 
 ---
 
@@ -114,30 +124,32 @@ streamlit run src/frontend/app.py          # UI (separate terminal)
 
 ---
 
-## ☁️ Production deployment (AWS EC2 + HTTPS + auto-deploy)
+## ☁️ Production deployment (Azure VM + HTTPS + auto-deploy)
 
-A full production stack ships in this repo: **nginx** reverse proxy, **Let's Encrypt**
-HTTPS via **certbot**, and **GitHub Actions** that auto-deploy to EC2 on every push to `main`.
+A full production stack ships in this repo: an **nginx** reverse proxy, **Let's Encrypt**
+HTTPS via **certbot**, and a **GitHub Actions** workflow that auto-deploys to the server on
+every push to `main`. It targets an **Azure virtual machine** (Ubuntu), which works well with
+the **Azure for Students** credit included in the GitHub Student Developer Pack.
 
 ```bash
-# on a fresh Ubuntu EC2 instance
-curl -fsSL <repo>/raw/main/scripts/deploy/ec2-bootstrap.sh | bash
+# on a fresh Ubuntu Azure VM
+curl -fsSL <repo>/raw/main/scripts/deploy/vm-bootstrap.sh | bash
 cd ~/arxiv-rag && cp .env.example .env && nano .env   # set DOMAIN, CERTBOT_EMAIL, secrets
 bash scripts/deploy/init-letsencrypt.sh               # one-time TLS cert
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-📋 **Full step-by-step runbook:** [DEPLOYMENT.md](DEPLOYMENT.md) — covers launching the
-instance, the security-group rules, an **Elastic IP**, DNS, certbot, server-side secrets,
-and wiring up the auto-deploy workflow. GCP Cloud Run notes are included too.
+📋 **Full step-by-step runbook:** [DEPLOYMENT.md](DEPLOYMENT.md) — covers creating the VM,
+network security group rules, a static public IP, DNS, certbot, server-side secrets, and
+wiring up the auto-deploy workflow.
 
-| Production piece              | File |
-| ----------------------------- | ---- |
-| Compose: pg+api+frontend+nginx+certbot | [docker-compose.prod.yml](docker-compose.prod.yml) |
+| Production component            | File |
+| ------------------------------- | ---- |
+| Compose: pg + api + frontend + nginx + certbot | [docker-compose.prod.yml](docker-compose.prod.yml) |
 | Reverse proxy (SSE + websockets) | [nginx/app.conf.template](nginx/app.conf.template) |
-| EC2 bootstrap (Docker + firewall) | [scripts/deploy/ec2-bootstrap.sh](scripts/deploy/ec2-bootstrap.sh) |
-| TLS certificate bootstrap     | [scripts/deploy/init-letsencrypt.sh](scripts/deploy/init-letsencrypt.sh) |
-| Auto-deploy on push to main   | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
+| VM bootstrap (Docker + firewall) | [scripts/deploy/vm-bootstrap.sh](scripts/deploy/vm-bootstrap.sh) |
+| TLS certificate bootstrap       | [scripts/deploy/init-letsencrypt.sh](scripts/deploy/init-letsencrypt.sh) |
+| Auto-deploy on push to main     | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
 
 ---
 

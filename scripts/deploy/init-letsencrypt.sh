@@ -2,9 +2,9 @@
 # One-time bootstrap of a Let's Encrypt certificate for ${DOMAIN}.
 #
 # Prereqs (see DEPLOYMENT.md):
-#   - DNS A record for $DOMAIN points at the server's Elastic IP
+#   - DNS A record for $DOMAIN points at the VM's static public IP
 #   - .env contains DOMAIN and CERTBOT_EMAIL
-#   - ports 80 and 443 open in the security group
+#   - ports 80 and 443 open in the VM's Network Security Group
 #
 # It starts nginx with a temporary self-signed cert so the HTTP-01 challenge can
 # be served, requests the real certificate, then reloads nginx.

@@ -1,4 +1,4 @@
-# Production stack for EC2 / a remote Docker host:
+# Production stack for an Azure VM / any remote Docker host:
 #   postgres + api + frontend + nginx (reverse proxy, TLS) + certbot (renewals)
 #
 # Usage on the server:
