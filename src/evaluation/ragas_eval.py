@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from src.config import get_settings
 from src.evaluation.test_set import TEST_SET
 from src.generation.chain import RAGChain
 from src.logging_conf import get_logger
@@ -14,6 +15,55 @@ logger = get_logger(__name__)
 
 _METRICS = ["faithfulness", "answer_relevancy", "context_recall", "context_precision"]
 _RESULTS_DIR = "evaluation_results"
+
+
+class _LocalEmbeddings:
+    """LangChain-compatible embeddings backed by our local sentence-transformer.
+
+    Lets RAGAS compute embedding-based metrics for free (no OpenAI), reusing the
+    same MiniLM model the retriever uses.
+    """
+
+    def __init__(self) -> None:
+        from src.embeddings.embedder import Embedder
+
+        self._embedder = Embedder()
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [v.tolist() for v in self._embedder.embed_batch(texts)]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._embedder.embed_query(text).tolist()
+
+
+def _judge_components():
+    """Return ``(llm, embeddings)`` for RAGAS, or ``(None, None)`` for OpenAI default.
+
+    For the free ``groq`` backend this returns a Groq chat model as the judge and
+    local MiniLM embeddings, so the whole evaluation runs without paid APIs.
+    """
+    settings = get_settings()
+    if settings.llm_backend != "groq":
+        return None, None  # let RAGAS use its OpenAI default (paid)
+
+    from langchain_openai import ChatOpenAI
+
+    judge = ChatOpenAI(
+        model=settings.groq_model,
+        temperature=0,
+        api_key=settings.groq_api_key,
+        base_url=settings.groq_base_url,
+    )
+    embeddings = _LocalEmbeddings()
+
+    # Wrap with RAGAS adapters when available (newer RAGAS versions require it).
+    try:
+        from ragas.embeddings import LangchainEmbeddingsWrapper
+        from ragas.llms import LangchainLLMWrapper
+
+        return LangchainLLMWrapper(judge), LangchainEmbeddingsWrapper(embeddings)
+    except Exception:  # noqa: BLE001 — older RAGAS accepts raw langchain objects
+        return judge, embeddings
 
 
 @dataclass
@@ -76,6 +126,7 @@ class RAGASEvaluator:
             )
 
             dataset = Dataset.from_list(samples)
+            judge_llm, judge_embeddings = _judge_components()
             result = evaluate(
                 dataset,
                 metrics=[
@@ -84,6 +135,10 @@ class RAGASEvaluator:
                     context_recall,
                     context_precision,
                 ],
+                # When set (e.g. Groq + local embeddings) RAGAS uses these instead
+                # of its OpenAI default, keeping evaluation completely free.
+                llm=judge_llm,
+                embeddings=judge_embeddings,
             )
             df = result.to_pandas()
             aggregate = {m: float(df[m].mean()) for m in _METRICS if m in df}

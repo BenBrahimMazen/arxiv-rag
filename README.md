@@ -155,14 +155,18 @@ and wiring up the auto-deploy workflow. GCP Cloud Run notes are included too.
 
 All behaviour is controlled by `.env` (see [`.env.example`](.env.example)):
 
-| Variable            | Options                       | Default  |
-| ------------------- | ----------------------------- | -------- |
-| `EMBEDDING_BACKEND` | `local` · `openai`            | `local`  |
-| `VECTOR_BACKEND`    | `chroma` · `pinecone`         | `chroma` |
-| `RERANKER_BACKEND`  | `local` · `cohere`            | `local`  |
-| `LLM_BACKEND`       | `openai` · `echo` (offline)   | `openai` |
+| Variable            | Options                            | Default  |
+| ------------------- | ---------------------------------- | -------- |
+| `EMBEDDING_BACKEND` | `local` · `openai`                 | `local`  |
+| `VECTOR_BACKEND`    | `chroma` · `pinecone`              | `chroma` |
+| `RERANKER_BACKEND`  | `local` · `cohere`                 | `local`  |
+| `LLM_BACKEND`       | `groq` · `openai` · `echo`         | `groq`   |
 
-> Set `LLM_BACKEND=echo` to exercise the full pipeline with **no OpenAI key** (used in tests/CI).
+> **Fully free path:** `LLM_BACKEND=groq` (Llama 3.3 70B on Groq's free, no-credit-card,
+> OpenAI-compatible API) + `EMBEDDING_BACKEND=local` + `RERANKER_BACKEND=local` +
+> `VECTOR_BACKEND=chroma`. Get a key at [console.groq.com/keys](https://console.groq.com/keys).
+> RAGAS then uses Groq as the judge with local embeddings — **evaluation is free too**.
+> `LLM_BACKEND=echo` needs no key at all (used in tests/CI).
 
 ---
 

@@ -43,8 +43,12 @@ class Settings(BaseSettings):
     cohere_api_key: str | None = Field(default=None)
 
     # Generation
-    llm_backend: str = Field(default="openai")  # openai | echo
+    llm_backend: str = Field(default="openai")  # openai | groq | echo
     llm_model: str = Field(default="gpt-4o-mini")
+    # Groq (free, OpenAI-compatible API — no credit card needed)
+    groq_api_key: str | None = Field(default=None)
+    groq_model: str = Field(default="llama-3.3-70b-versatile")
+    groq_base_url: str = Field(default="https://api.groq.com/openai/v1")
 
     # Ingestion
     max_papers: int = Field(default=500)

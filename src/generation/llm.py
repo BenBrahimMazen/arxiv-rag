@@ -10,6 +10,21 @@ from src.logging_conf import get_logger
 logger = get_logger(__name__)
 
 
+def _openai_compatible_config(settings: Settings) -> tuple[str, str, str | None]:
+    """Return ``(model, api_key, base_url)`` for the active OpenAI-compatible backend.
+
+    ``base_url`` is ``None`` for OpenAI (use the default endpoint) and Groq's
+    endpoint for the ``groq`` backend.
+    """
+    if settings.llm_backend == "groq":
+        if not settings.groq_api_key:
+            raise ValueError("GROQ_API_KEY required for groq LLM backend")
+        return settings.groq_model, settings.groq_api_key, settings.groq_base_url
+    if not settings.openai_api_key:
+        raise ValueError("OPENAI_API_KEY required for openai LLM backend")
+    return settings.llm_model, settings.openai_api_key, None
+
+
 class LLM(Protocol):
     """Minimal async LLM interface used by the RAG chain."""
 
@@ -19,18 +34,23 @@ class LLM(Protocol):
 
 
 class OpenAIChatLLM:
-    """GPT-4o-mini through ``langchain_openai.ChatOpenAI`` (temperature=0)."""
+    """OpenAI-compatible chat model via ``langchain_openai.ChatOpenAI``.
+
+    Serves both the ``openai`` backend (GPT-4o-mini) and the ``groq`` backend
+    (Llama 3.3 70B on Groq's free OpenAI-compatible endpoint), selected by
+    ``LLM_BACKEND``. Temperature is fixed at 0 for reproducible answers.
+    """
 
     def __init__(self, settings: Settings | None = None) -> None:
         from langchain_openai import ChatOpenAI
 
         self.settings = settings or get_settings()
-        if not self.settings.openai_api_key:
-            raise ValueError("OPENAI_API_KEY required for openai LLM backend")
+        model, api_key, base_url = _openai_compatible_config(self.settings)
         self._llm = ChatOpenAI(
-            model=self.settings.llm_model,
+            model=model,
             temperature=0,
-            api_key=self.settings.openai_api_key,
+            api_key=api_key,
+            base_url=base_url,
         )
 
     def _messages(self, system: str, user: str):
@@ -83,4 +103,5 @@ def get_llm(settings: Settings | None = None) -> LLM:
     if settings.llm_backend == "echo":
         logger.info("Using EchoLLM (offline stub)")
         return EchoLLM()
+    logger.info("Using OpenAI-compatible LLM backend: %s", settings.llm_backend)
     return OpenAIChatLLM(settings)
