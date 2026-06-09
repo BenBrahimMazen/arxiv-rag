@@ -73,7 +73,11 @@ hand-crafted test set in [`src/evaluation/test_set.py`](src/evaluation/test_set.
 
 ## 🎬 Demo
 
-_Add a demo GIF here (e.g. `docs/demo.gif`) showing a question being asked and answered with sources._
+![Demo](docs/demo.gif)
+
+> Record this GIF once the app is running with [`scripts/record_demo.md`](docs/record_demo.md)
+> (asking a question → streamed answer → expanding the source cards), then save it to
+> `docs/demo.gif`.
 
 ---
 
@@ -107,6 +111,33 @@ pip install -r requirements.txt
 uvicorn src.api.main:app --reload          # API
 streamlit run src/frontend/app.py          # UI (separate terminal)
 ```
+
+---
+
+## ☁️ Production deployment (AWS EC2 + HTTPS + auto-deploy)
+
+A full production stack ships in this repo: **nginx** reverse proxy, **Let's Encrypt**
+HTTPS via **certbot**, and **GitHub Actions** that auto-deploy to EC2 on every push to `main`.
+
+```bash
+# on a fresh Ubuntu EC2 instance
+curl -fsSL <repo>/raw/main/scripts/deploy/ec2-bootstrap.sh | bash
+cd ~/arxiv-rag && cp .env.example .env && nano .env   # set DOMAIN, CERTBOT_EMAIL, secrets
+bash scripts/deploy/init-letsencrypt.sh               # one-time TLS cert
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+📋 **Full step-by-step runbook:** [DEPLOYMENT.md](DEPLOYMENT.md) — covers launching the
+instance, the security-group rules, an **Elastic IP**, DNS, certbot, server-side secrets,
+and wiring up the auto-deploy workflow. GCP Cloud Run notes are included too.
+
+| Production piece              | File |
+| ----------------------------- | ---- |
+| Compose: pg+api+frontend+nginx+certbot | [docker-compose.prod.yml](docker-compose.prod.yml) |
+| Reverse proxy (SSE + websockets) | [nginx/app.conf.template](nginx/app.conf.template) |
+| EC2 bootstrap (Docker + firewall) | [scripts/deploy/ec2-bootstrap.sh](scripts/deploy/ec2-bootstrap.sh) |
+| TLS certificate bootstrap     | [scripts/deploy/init-letsencrypt.sh](scripts/deploy/init-letsencrypt.sh) |
+| Auto-deploy on push to main   | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) |
 
 ---
 

@@ -1,0 +1,76 @@
+# Nginx reverse proxy for the ArXiv Research Assistant.
+#
+# Rendered at container start by envsubst using ${DOMAIN} (see docker-compose.prod.yml).
+#   /        -> Streamlit frontend (8501, with websocket upgrade)
+#   /api/    -> FastAPI backend   (8000, SSE-aware: buffering off)
+#   /.well-known/acme-challenge/ -> certbot webroot (HTTP-01 challenge)
+#
+# Before the first HTTPS cert exists, only the port-80 server is used.
+# scripts/deploy/init-letsencrypt.sh obtains the cert, then the 443 block serves.
+
+upstream frontend_upstream {
+    server frontend:8501;
+}
+
+upstream api_upstream {
+    server api:8000;
+}
+
+# ── HTTP: ACME challenge + redirect to HTTPS ──────────────────────────────
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ── HTTPS: reverse proxy ──────────────────────────────────────────────────
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_session_cache shared:SSL:10m;
+
+    client_max_body_size 25m;
+
+    # FastAPI backend under /api/ (prefix stripped before proxying).
+    location /api/ {
+        proxy_pass http://api_upstream/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Server-Sent Events: disable buffering so tokens stream immediately.
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+
+    # Streamlit frontend (websockets for live rerenders).
+    location / {
+        proxy_pass http://frontend_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+    }
+}

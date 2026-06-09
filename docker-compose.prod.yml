@@ -1,0 +1,90 @@
+# Production stack for EC2 / a remote Docker host:
+#   postgres + api + frontend + nginx (reverse proxy, TLS) + certbot (renewals)
+#
+# Usage on the server:
+#   cp .env.example .env && edit secrets, DOMAIN, CERTBOT_EMAIL
+#   bash scripts/deploy/init-letsencrypt.sh      # one-time: obtain certificate
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Direct ports 8000 (API) and 8501 (frontend) are published for debugging and to
+# satisfy the "ports open" checklist; public traffic should go through nginx (443).
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: arxiv_rag
+      POSTGRES_USER: arxiv
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arxiv}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arxiv -d arxiv_rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgresql+psycopg2://arxiv:${POSTGRES_PASSWORD:-arxiv}@postgres:5432/arxiv_rag
+      CHROMA_PATH: /app/chroma_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    environment:
+      API_URL: http://api:8000
+    depends_on:
+      - api
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api
+      - frontend
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/app.conf.template:/etc/nginx/templates/app.conf.template:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    # Reload every 6h so renewed certificates are picked up without downtime.
+    command: >
+      /bin/sh -c "while :; do sleep 6h & wait $${!};
+      nginx -s reload; done & nginx -g 'daemon off;'"
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Attempt renewal twice a day; certbot only renews when near expiry.
+    entrypoint: >
+      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot
+      -w /var/www/certbot; sleep 12h & wait $${!}; done"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

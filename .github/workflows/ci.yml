@@ -11,7 +11,7 @@ env:
   RERANKER_BACKEND: local
   LLM_BACKEND: echo
   VECTOR_BACKEND: chroma
-  POSTGRES_URL: sqlite+pysqlite:///:memory:
+  POSTGRES_URL: "sqlite+pysqlite:///:memory:"
 
 jobs:
   lint:
