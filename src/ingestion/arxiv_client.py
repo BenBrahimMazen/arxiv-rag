@@ -5,6 +5,7 @@ import os
 from datetime import date, datetime
 
 import arxiv
+import requests
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -98,8 +99,15 @@ class ArxivClient:
             logger.debug("PDF already present, skipping: %s", target)
             return target
 
-        # Re-resolve the result by id so we can use the library's downloader.
-        result = next(self._client.results(arxiv.Search(id_list=[paper.arxiv_id])))
-        result.download_pdf(dirpath=save_dir, filename=filename)
+        # Download the PDF directly over HTTP. This avoids depending on the
+        # arxiv library's downloader, whose API differs across major versions.
+        headers = {"User-Agent": "arxiv-rag/1.0 (academic research assistant)"}
+        with requests.get(
+            paper.pdf_url, headers=headers, stream=True, timeout=60
+        ) as resp:
+            resp.raise_for_status()
+            with open(target, "wb") as fh:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    fh.write(chunk)
         logger.info("Downloaded %s", target)
         return target
