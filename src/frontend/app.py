@@ -11,11 +11,11 @@ import streamlit as st
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 EXAMPLE_QUESTIONS = [
-    "What methods reduce hallucination in large language models?",
-    "How does LoRA reduce the cost of fine-tuning?",
-    "What is FlashAttention and why is it faster?",
-    "How does DPO differ from RLHF?",
-    "What techniques improve transformer context length?",
+    "What are the fundamental limitations of Structured State Space Models?",
+    "What is the 'grade inflation problem' in generative models?",
+    "Do autoregressive Transformers require explicit positional encodings?",
+    "How can LLMs identify missed optimization opportunities in compilers?",
+    "What limits attention-based models in terms of context window size?",
 ]
 
 st.set_page_config(page_title="ArXiv Research Assistant", page_icon="📚", layout="wide")
