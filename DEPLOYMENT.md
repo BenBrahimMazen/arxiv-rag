@@ -113,17 +113,24 @@ avoid rate limits while testing.
 
 ## 6. Start the stack & ingest data
 
+The images are **prebuilt in CI and published to GHCR** (the
+[Build Images](.github/workflows/build-images.yml) workflow), so the VM only pulls them —
+no torch-heavy build on the VM:
+
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml pull api frontend
+docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml exec api python -m scripts.ingest --max-papers 50
 ```
 
 Visit **https://arxiv-rag.example.com** (frontend) and
 **https://arxiv-rag.example.com/api/docs** (API).
 
-> On a B2s the first image build can take a while. If it is slow or memory-tight, build the
-> images via GitHub Actions and push to GHCR, then `docker compose pull` on the VM instead
-> of building there (see the note at the bottom).
+> **One-time:** after the first `Build Images` run, make the two GHCR packages **public**
+> (GitHub → your profile → Packages → `arxiv-rag-api` / `arxiv-rag-frontend` → Package
+> settings → Change visibility → Public) so the VM can pull them without authenticating.
+> To keep them private instead, run `docker login ghcr.io` on the VM with a PAT that has
+> `read:packages`.
 
 ---
 

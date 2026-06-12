@@ -1,7 +1,7 @@
 name: Deploy
 
-# Auto-deploy to the VM (Azure VM) after the CI workflow succeeds on main.
-# (Runs on push to main once "CI" is green; also triggerable manually.)
+# Auto-deploy to the Azure VM after images are published to GHCR.
+# The VM only pulls the prebuilt images (no heavy build on the VM).
 #
 # Requires these repository secrets:
 #   VM_HOST        - static public IP or domain of the VM
@@ -11,7 +11,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["Build Images"]
     branches: [main]
     types: [completed]
   workflow_dispatch:
@@ -51,8 +51,9 @@ jobs:
             cd "${{ secrets.VM_APP_DIR }}"
             git fetch --all
             git reset --hard origin/main
-            docker compose -f docker-compose.prod.yml pull || true
-            docker compose -f docker-compose.prod.yml up -d --build
+            # Pull the prebuilt images from GHCR (no build on the VM).
+            docker compose -f docker-compose.prod.yml pull api frontend
+            docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
             # Smoke-check the API health endpoint.
             sleep 10

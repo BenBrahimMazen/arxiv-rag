@@ -54,6 +54,7 @@ Next steps:
   3) In the Azure portal, open ports 80, 443, 8000, 8501 in the VM's Network Security Group
   4) Point your domain's DNS A record at this VM's static public IP
   5) bash scripts/deploy/init-letsencrypt.sh
-  6) docker compose -f docker-compose.prod.yml up -d --build
-  7) Ingest data: docker compose -f docker-compose.prod.yml exec api python -m scripts.ingest --max-papers 50
+  6) docker compose -f docker-compose.prod.yml pull api frontend
+  7) docker compose -f docker-compose.prod.yml up -d
+  8) Ingest data: docker compose -f docker-compose.prod.yml exec api python -m scripts.ingest --max-papers 50
 EOF

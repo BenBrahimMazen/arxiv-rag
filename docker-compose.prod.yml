@@ -26,6 +26,9 @@ services:
     restart: unless-stopped
 
   api:
+    # Pulled from GHCR (built by .github/workflows/build-images.yml). The local
+    # build stanza is a fallback for `docker compose build` on a dev machine.
+    image: ghcr.io/benbrahimmazen/arxiv-rag-api:latest
     build:
       context: .
       dockerfile: Dockerfile.api
@@ -44,6 +47,7 @@ services:
     restart: unless-stopped
 
   frontend:
+    image: ghcr.io/benbrahimmazen/arxiv-rag-frontend:latest
     build:
       context: .
       dockerfile: Dockerfile.frontend
