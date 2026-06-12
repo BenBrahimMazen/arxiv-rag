@@ -1,9 +1,30 @@
-"""Hand-crafted evaluation set: 20 Q&A pairs over cs.LG papers (2023-2024).
+"""Evaluation set: 20 Q&A pairs.
 
-Mix of factual, comparative and synthesis questions. ``ground_truth`` answers
-are concise reference answers used by RAGAS context_recall.
+Two sources are supported:
+- a corpus-grounded set generated from the actually-indexed papers
+  (``generated_test_set.json``, produced by ``scripts/generate_testset.py``);
+- the hand-crafted fallback ``TEST_SET`` below (generic cs.LG / LLM questions).
+
+``load_test_set()`` prefers the generated set when present, which is the correct
+methodology: the test questions should come from the corpus under evaluation.
 """
 from __future__ import annotations
+
+import json
+import os
+
+_GENERATED_PATH = os.path.join(os.path.dirname(__file__), "generated_test_set.json")
+
+
+def load_test_set() -> list[dict[str, str]]:
+    """Return the corpus-grounded test set if available, else the hand-crafted one."""
+    if os.path.exists(_GENERATED_PATH):
+        with open(_GENERATED_PATH, encoding="utf-8") as fh:
+            data = json.load(fh)
+        if data:
+            return data
+    return TEST_SET
+
 
 TEST_SET: list[dict[str, str]] = [
     {

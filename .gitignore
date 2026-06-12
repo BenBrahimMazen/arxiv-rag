@@ -26,8 +26,10 @@ env/
 data/raw/
 chroma_db/
 *.pdf
+*.db
 mlruns/
-evaluation_results/*.json
+evaluation_results/
+# (the corpus-grounded test set IS committed: src/evaluation/generated_test_set.json)
 
 # Models cache
 .cache/

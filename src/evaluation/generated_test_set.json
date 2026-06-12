@@ -1,0 +1,82 @@
+[
+  {
+    "question": "How can large-scale robust matrix completion problems be efficiently solved with low computational complexity and linear convergence?",
+    "ground_truth": "Learned Robust Matrix Completion (LRMC) is a novel scalable and learnable non-convex approach that can solve large-scale robust matrix completion problems with low computational complexity and linear convergence, and its free parameters can be effectively learned via deep unfolding to achieve optimum performance."
+  },
+  {
+    "question": "How can missing or phantom nodes in large-scale causal models be approximated?",
+    "ground_truth": "An adaptive multiexpert mixture of feedback causal models can approximate missing or phantom nodes in large-scale causal models by mixing tuned expert fuzzy cognitive maps, allowing for partial control over causal hallucinations and better approximation of the feedback system's true equilibrium behavior."
+  },
+  {
+    "question": "What approach is proposed for detecting leaf diseases in crops using image datasets?",
+    "ground_truth": "A novel method for the detection of various leaf diseases in crops is proposed, along with the identification and description of an efficient network architecture that encompasses hyperparameters and optimization methods, based on convolutional neural networks (CNNs)."
+  },
+  {
+    "question": "What is the 'grade inflation problem' in generative models and how does it affect quality scores?",
+    "ground_truth": "The 'grade inflation problem' refers to the phenomenon where many commonly used quality scores for comparing two-dimensional distributions of synthetic vs. ground-truth data give better results than they should, due to their equipoint nature, which values all datapoints equally."
+  },
+  {
+    "question": "What is the primary limitation of attention-based models, such as Transformers, in terms of context window size?",
+    "ground_truth": "The primary limitation of attention-based models is that they have a quadratic cost, limiting the model to a fixed-length context, which can become a scalability issue in complex real-world tasks with extremely large context windows."
+  },
+  {
+    "question": "Do autoregressive Transformer language models require explicit positional encodings if they have more than one layer?",
+    "ground_truth": "No, they do not require explicit positional encodings, as a cascade of permutation invariant set processors can collectively exhibit sequence-sensitive behavior in the autoregressive setting, allowing them to distinguish sequences with permuted tokens without the need for explicit positional encodings."
+  },
+  {
+    "question": "What are the fundamental limitations of Structured State Space Models (SSMs) in modeling complex long-ranged dependencies?",
+    "ground_truth": "SSMs are inherently limited by strong recency bias, which impairs their ability to recall distant information, and as they increase in depth, they exhibit a tendency toward over-smoothing, where token representations become increasingly indistinguishable."
+  },
+  {
+    "question": "What techniques are used to achieve better training stability and improved per-token efficiency in OLMo 2?",
+    "ground_truth": "Techniques for achieving better training stability and improved per-token efficiency in OLMo 2 include modified model architecture, updated pretraining data mixture, and incorporation of best practices from Tülu 3, such as late-stage curriculum training and reinforcement learning with verifiable rewards."
+  },
+  {
+    "question": "How can large language models be used to identify missed optimization opportunities in compilers?",
+    "ground_truth": "Large language models can be used to identify missed optimization opportunities in compilers by combining them with differential testing strategies to generate random code and analyze anomalous compiler behavior, allowing for the detection of optimization bugs in production compilers."
+  },
+  {
+    "question": "Can we identify a compact, multitask-effective subset of training data that preserves model capabilities across tasks while enabling faster experimentation?",
+    "ground_truth": "Yes, using the ICONS approach, which leverages first-order training dynamics and majority voting to estimate each example's influence on validation performance, resulting in a compact subset that retains up to 99.8% of full-dataset performance."
+  },
+  {
+    "question": "How can existing feed-forward reconstruction methods be repurposed for training 3D generative models?",
+    "ground_truth": "Existing feed-forward reconstruction methods can serve as effective latent encoders for training 3D generative models by reusing powerful pre-trained reconstruction models, which avoids computationally expensive encoder network training and obtains rich 3D latent features for generative modeling."
+  },
+  {
+    "question": "How does SoundBrush enable visual scene editing guided by diverse in-the-wild sound?",
+    "ground_truth": "SoundBrush extends the generative capabilities of the Latent Diffusion Model to incorporate audio information, allowing it to learn to map audio features into the textual space of the LDM and enabling visual scene editing guided by sound."
+  },
+  {
+    "question": "How can Large Language Models (LLMs) be enabled to support Hardware Description Languages (HDLs) that they have not been previously trained on?",
+    "ground_truth": "HDLAgent, an LLM-neutral AI agent, can be used to enhance off-the-shelf LLMs and support multiple HDLs with limited LLM support, by incorporating state-of-the-art AI coding agent techniques, such as self-reflection and grounding, and creating an HDL description summary to enable knowledge transfer between HDLs."
+  },
+  {
+    "question": "How can transmitted and reflected light be separated in images captured through transparent surfaces like glass?",
+    "ground_truth": "This can be achieved using a robust framework called Flash-Split, which leverages flash cues to perform latent-space reflection separation, and consists of two stages: separating reflection and transmission latents via a dual-branch diffusion model, and restoring high-resolution details to the separated latents via a cross-latent decoding process."
+  },
+  {
+    "question": "What is the average number of features selected by the Prediction Analysis of Microarrays (PAM) algorithm when applied to microarray human cancers?",
+    "ground_truth": "The PAM algorithm selects 2611 features on average from 10 multi-class datasets when applied to microarray human cancers."
+  },
+  {
+    "question": "What type of data typically arises in applications such as weighted word-word co-occurrence count data and co-occurrence of item-item or user-item pairs in e-commerce?",
+    "ground_truth": "High-dimensional sparse matrix data with highly skewed non-negative values and an abundance of zeros."
+  },
+  {
+    "question": "How can cooccurrence count data from online shopping platforms or text sequences be effectively analyzed for developing recommender systems or studying item relevance?",
+    "ground_truth": "The Shared parameter Alternating Tweedie (SA-Tweedie) model can be used to analyze cooccurrence count data, which extracts numerical data by defining windows of cooccurrence using weighted count on the continuous scale and allows positive probability mass for zero observations."
+  },
+  {
+    "question": "How does context length impact the performance of transformers in biomedical image analysis?",
+    "ground_truth": "There is a strong relationship between context length and performance, particularly for pixel-level prediction tasks, and recent long-context models demonstrate significant improvements in efficiency while maintaining comparable performance."
+  },
+  {
+    "question": "What machine learning approach can be used to predict the number of barges transported by vessels on inland waterways using tracking data from the Automatic Identification System (AIS)?",
+    "ground_truth": "A machine learning approach involving the use of AdaBoost and Random Forest combined with an AdaBoost ensemble model can be used to predict barge presence and quantity, with F1 scores of 0.932 and 0.886 respectively."
+  },
+  {
+    "question": "What is the primary challenge in learning time-varying graph models for real-world network topologies that are subject to change over time?",
+    "ground_truth": "The primary challenge is that current methodology often lacks robustness to outliers in the data and fails to handle heavy-tailed distributions, a common feature in many real-world datasets, such as financial data."
+  }
+]
